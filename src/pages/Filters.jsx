@@ -1,8 +1,7 @@
 import { useSearchParams } from "react-router-dom";
-import { useState } from "react";
-import { usePokemon } from "../hooks/usePokemon";
+import { useState, useEffect } from "react";
 import PokemonCard from "../components/PokemonCard";
-import { mapPokemonList } from "../utils/getPokemonId";
+import { getPokemonIdFromUrl } from "../utils/getPokemonId";
 import { Loading } from "../components/Loading";
 import {
   Box,
@@ -17,37 +16,103 @@ import {
 const Filters = () => {
   const [searchParams] = useSearchParams();
   const [limit, setLimit] = useState(20);
+  const [pokemonList, setPokemonList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const typeParam = searchParams.get("type");
   const genParam = searchParams.get("gen");
 
-  const [prevFilter, setPrevFilter] = useState(`${typeParam}-${genParam}`);
-  const currentFilter = `${typeParam}-${genParam}`;
-  if (currentFilter !== prevFilter) {
-    setPrevFilter(currentFilter);
+  useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    setLoading(true);
+    setError(null);
     setLimit(20);
-  }
 
-  let apiUrl = "https://pokeapi.co/api/v2/pokemon?limit=100&offset=0";
-  if (typeParam) apiUrl = `https://pokeapi.co/api/v2/type/${typeParam}`;
-  else if (genParam)
-    apiUrl = `https://pokeapi.co/api/v2/generation/${genParam}`;
+    const fetchData = async () => {
+      try {
+        if (typeParam && genParam) {
+          const [typeRes, genRes] = await Promise.all([
+            fetch(`https://pokeapi.co/api/v2/type/${typeParam}`, { signal }),
+            fetch(`https://pokeapi.co/api/v2/generation/${genParam}`, {
+              signal,
+            }),
+          ]);
+          const [typeData, genData] = await Promise.all([
+            typeRes.json(),
+            genRes.json(),
+          ]);
+          const typeIds =
+            typeData.pokemon?.map((p) => getPokemonIdFromUrl(p.pokemon.url)) ||
+            [];
+          const genIds = new Set(
+            genData.pokemon_species?.map((p) => getPokemonIdFromUrl(p.url)) ||
+              [],
+          );
+          setPokemonList(
+            typeIds.filter((id) => genIds.has(id)).sort((a, b) => a - b),
+          );
+        } else if (typeParam) {
+          const res = await fetch(
+            `https://pokeapi.co/api/v2/type/${typeParam}`,
+            { signal },
+          );
+          const data = await res.json();
+          setPokemonList(
+            (
+              data.pokemon?.map((p) => getPokemonIdFromUrl(p.pokemon.url)) || []
+            ).sort((a, b) => a - b),
+          );
+        } else if (genParam) {
+          const res = await fetch(
+            `https://pokeapi.co/api/v2/generation/${genParam}`,
+            { signal },
+          );
+          const data = await res.json();
+          setPokemonList(
+            (
+              data.pokemon_species?.map((p) => getPokemonIdFromUrl(p.url)) || []
+            ).sort((a, b) => a - b),
+          );
+        } else {
+          const res = await fetch(
+            `https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0`,
+            { signal },
+          );
+          const data = await res.json();
+          setPokemonList(
+            data.results?.map((p) => getPokemonIdFromUrl(p.url)) || [],
+          );
+        }
+      } catch (err) {
+        if (err.name !== "AbortError") setError(err);
+      } finally {
+        if (!signal.aborted) setLoading(false);
+      }
+    };
 
-  const { data, loading, error } = usePokemon(apiUrl);
+    fetchData();
 
-  const pokemonList = mapPokemonList(data, typeParam, genParam);
+    return () => controller.abort();
+  }, [typeParam, genParam]);
 
   return (
     <Container maxW="container.xl" py={8}>
       <Box textAlign="center" mb={10}>
         <Heading size="2xl" mb={4} textTransform="capitalize">
-          {typeParam && `Tipo: ${typeParam}`}
-          {genParam && `Generación: ${genParam}`}
-          {!typeParam && !genParam && "Explorar Pokémon"}
+          {typeParam && genParam
+            ? `${typeParam.charAt(0).toUpperCase() + typeParam.slice(1)} · Gen ${genParam}`
+            : typeParam
+              ? `Type: ${typeParam}`
+              : genParam
+                ? `Generation: ${genParam}`
+                : "Explore Pokémon"}
         </Heading>
         <Text color="gray.500">
-          Mostrando {Math.min(limit, pokemonList.length)} de{" "}
-          {pokemonList.length} resultados
+          Showing {Math.min(limit, pokemonList.length)} of {pokemonList.length}{" "}
+          results
         </Text>
       </Box>
 
@@ -55,9 +120,7 @@ const Filters = () => {
 
       {error && (
         <Center py={10}>
-          <Text color="red.500">
-            No se encontraron resultados para esta búsqueda.
-          </Text>
+          <Text color="red.500">No results found for this search.</Text>
         </Center>
       )}
 
@@ -76,7 +139,7 @@ const Filters = () => {
             borderRadius="full"
             px={10}
           >
-            Cargar más
+            See more
           </Button>
         </Center>
       )}

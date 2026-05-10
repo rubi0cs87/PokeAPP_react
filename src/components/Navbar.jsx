@@ -1,5 +1,10 @@
 import { useState, useEffect, useContext } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import {
+  useNavigate,
+  Link,
+  useSearchParams,
+  useLocation,
+} from "react-router-dom";
 import { PokemonContext } from "../context/PokemonContext";
 import {
   Box,
@@ -7,8 +12,10 @@ import {
   Flex,
   Image,
   Input,
-  NativeSelect,
   Text,
+  Menu,
+  Portal,
+  Container,
 } from "@chakra-ui/react";
 import pokeBall from "../assets/pokeball.svg";
 
@@ -17,9 +24,12 @@ const Navbar = () => {
   const [types, setTypes] = useState([]);
   const [generations, setGenerations] = useState([]);
   const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
   const { isShiny, toggleShiny } = useContext(PokemonContext);
+  const location = useLocation();
+  const isActive = location.pathname === "/Captured";
 
   useEffect(() => {
     fetch("https://pokeapi.co/api/v2/type")
@@ -58,26 +68,30 @@ const Navbar = () => {
       zIndex="sticky"
       boxShadow="md"
     >
-      {/* Fila superior: logo, búsqueda, botón shiny */}
-      <Flex align="center" justify="space-between" gap={3} mb={3}>
-        <Link to="/">
-          <Flex align="center" gap={2}>
-            <Image src={pokeBall} alt="Home" boxSize="32px" />
-            <Text
-              fontWeight="bold"
-              fontSize="xl"
-              color="white"
-              letterSpacing="wide"
-            >
-              PokéDex
-            </Text>
-          </Flex>
-        </Link>
+      {/* Fila superior: logo, input, shiny */}
+      <Flex align="center" gap={3} mb={3}>
+        <Flex align="center" gap={2} flexShrink={0}>
+          <Link to="/">
+            <Flex align="center" gap={2}>
+              <Image src={pokeBall} alt="Home" boxSize="32px" flexShrink={0} />
+              <Text
+                fontWeight="bold"
+                fontSize="xl"
+                color="white"
+                letterSpacing="wide"
+                display={{ base: "none", md: "block" }}
+                whiteSpace="nowrap"
+              >
+                PokéApp
+              </Text>
+            </Flex>
+          </Link>
+        </Flex>
 
-        <Box as="form" onSubmit={handleSearch} flex={1} maxW="300px">
+        <Box as="form" onSubmit={handleSearch} flex={1} minW={0}>
           <Input
             type="text"
-            placeholder="Buscar pokémon..."
+            placeholder="Search pokémon..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             bg="white"
@@ -88,61 +102,141 @@ const Navbar = () => {
           />
         </Box>
 
-
-        <Button
-        onClick = navigate={}
-
         <Button
           onClick={toggleShiny}
           size="sm"
-          variant={isShiny ? "solid" : "outline"}
           colorPalette="yellow"
+          variant={isShiny ? "solid" : "outline"}
           borderRadius="full"
-          title="Modo Shiny"
+          title="Shiny Mode"
+          flexShrink={0}
         >
-          {isShiny ? "✨ Shiny" : "⭐ Normal"}
+          ✨
         </Button>
       </Flex>
 
-      {/* Fila inferior: filtros por tipo y generación */}
-      <Flex gap={3}>
-        <NativeSelect.Root flex={1} size="sm">
-          <NativeSelect.Field
-            value={currentType}
-            onChange={(e) => navigate(`/filters?type=${e.target.value}`)}
-            bg="red.500"
-            color="white"
-            borderColor="red.400"
-            sx={{ "& option": { color: "black", bg: "white" } }}
-          >
-            <option value="">Todos los tipos</option>
-            {types.map((t) => (
-              <option key={t.name} value={t.name}>
-                {t.name.charAt(0).toUpperCase() + t.name.slice(1)}
-              </option>
-            ))}
-          </NativeSelect.Field>
-          <NativeSelect.Indicator color="white" />
-        </NativeSelect.Root>
+      {/* Fila inferior: tipos, gens (izquierda) | captured (derecha) */}
+      <Flex align="center" justify="space-between" gap={3}>
+        <Flex gap={3}>
+          <Menu.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
+            <Menu.Trigger asChild>
+              <Button
+                variant={currentType ? "solid" : "outline"}
+                colorPalette="red"
+                size="sm"
+                borderRadius="full"
+                color="white"
+                borderColor="white"
+              >
+                {currentType
+                  ? currentType.charAt(0).toUpperCase() + currentType.slice(1)
+                  : "All types"}
+              </Button>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content bg="red.600" borderColor="red.400">
+                  <Menu.Item
+                    value=""
+                    onClick={() => {
+                      navigate(
+                        currentGen ? `/filters?gen=${currentGen}` : "/filters",
+                      );
+                      setOpen(false);
+                    }}
+                    color="white"
+                    _hover={{ bg: "red.500" }}
+                  >
+                    All types
+                  </Menu.Item>
+                  {types.map((t) => (
+                    <Menu.Item
+                      key={t.name}
+                      value={t.name}
+                      onClick={() => {
+                        navigate(
+                          `/filters?type=${t.name}${currentGen ? `&gen=${currentGen}` : ""}`,
+                        );
+                        setOpen(false);
+                      }}
+                      color="white"
+                      _hover={{ bg: "red.500" }}
+                    >
+                      {t.name.charAt(0).toUpperCase() + t.name.slice(1)}
+                    </Menu.Item>
+                  ))}
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
 
-        <NativeSelect.Root flex={1} size="sm">
-          <NativeSelect.Field
-            value={currentGen}
-            onChange={(e) => navigate(`/filters?gen=${e.target.value}`)}
-            bg="red.500"
-            color="white"
-            borderColor="red.400"
-            sx={{ "& option": { color: "black", bg: "white" } }}
+          <Menu.Root>
+            <Menu.Trigger asChild>
+              <Button
+                variant={currentGen ? "solid" : "outline"}
+                colorPalette="red"
+                size="sm"
+                borderRadius="full"
+                color="white"
+                borderColor="white"
+              >
+                {currentGen ? `Gen ${currentGen}` : "All gens"}
+              </Button>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content bg="red.600" borderColor="red.400">
+                  <Menu.Item
+                    value=""
+                    onClick={() =>
+                      navigate(
+                        currentType
+                          ? `/filters?type=${currentType}`
+                          : "/filters",
+                      )
+                    }
+                    color="white"
+                    _hover={{ bg: "red.500" }}
+                  >
+                    All gens
+                  </Menu.Item>
+                  {generations.map((g, index) => (
+                    <Menu.Item
+                      key={g.name}
+                      value={String(index + 1)}
+                      onClick={() =>
+                        navigate(
+                          `/filters?gen=${index + 1}${currentType ? `&type=${currentType}` : ""}`,
+                        )
+                      }
+                      color="white"
+                      _hover={{ bg: "red.500" }}
+                    >
+                      Gen {index + 1}
+                    </Menu.Item>
+                  ))}
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
+        </Flex>
+
+        <Link to="/Captured" _hover={{ textDecoration: "none" }}>
+          <Button
+            size="sm"
+            variant={isActive ? "solid" : "outline"}
+            borderRadius="full"
+            colorPalette="yellow"
+            title="Captured"
           >
-            <option value="">Todas las gens</option>
-            {generations.map((g, index) => (
-              <option key={g.name} value={index + 1}>
-                Gen {index + 1}
-              </option>
-            ))}
-          </NativeSelect.Field>
-          <NativeSelect.Indicator color="white" />
-        </NativeSelect.Root>
+            <Image
+              src={pokeBall}
+              alt="Captured"
+              boxSize="16px"
+              filter={isActive ? "brightness(1.2)" : "none"}
+            />
+          </Button>
+        </Link>
       </Flex>
     </Box>
   );

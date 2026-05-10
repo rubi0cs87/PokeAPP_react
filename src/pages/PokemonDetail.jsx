@@ -38,13 +38,12 @@ const PokemonDetail = () => {
 
   const { isShiny, toggleCaptured, isCaptured } = useContext(PokemonContext);
 
-  const captured = isCaptured((cap) => cap.id === pokemon?.id);
+  const captured = isCaptured(pokemon?.id);
 
   if (loading) return <Loading />;
   if (!pokemon || !species) return null;
 
-  const handleAction = (e) => {
-    e.preventDefault();
+  const handleAction = () => {
     toggleCaptured(pokemon);
   };
 
@@ -56,7 +55,7 @@ const PokemonDetail = () => {
     <Container maxW="600px" py={8}>
       <Flex justify="space-between" align="center" mb={6}>
         <Button variant="ghost" colorPalette="red" onClick={() => navigate(-1)}>
-          🏠 Home
+          🔙 Back
         </Button>
         <Stack direction="row" gap={2}>
           <Button
@@ -64,13 +63,13 @@ const PokemonDetail = () => {
             onClick={() => navigate(`/pokemon/${pokemon.id - 1}`)}
             variant="outline"
           >
-            ◀ Ant.
+            ◀ Prev
           </Button>
           <Button
             onClick={() => navigate(`/pokemon/${pokemon.id + 1}`)}
             variant="outline"
           >
-            Sig. ▶
+            Next ▶
           </Button>
         </Stack>
       </Flex>
@@ -83,19 +82,19 @@ const PokemonDetail = () => {
       >
         <CardBody p={8} textAlign="center">
           <IconButton
-            aria-label={captured ? "Get free" : "Catch!"}
+            aria-label={captured ? "Release" : "Catch!"}
             variant="ghost"
             position="absolute"
             top="25px"
             left="25px"
             cursor="pointer"
             onClick={handleAction}
+            boxSize="48px"
           >
             <Image
               src={Pokeball}
-              position="absolute"
               w="35px"
-              opacity={captured ? 1 : 0.1}
+              opacity={captured ? 1 : 0.2}
               filter={captured ? "none" : "grayscale(100%)"}
               transition="all 0.4s ease"
               title={captured ? "You got it!" : "Not captured yet"}
@@ -196,7 +195,10 @@ const PokemonDetail = () => {
           </Box>
 
           <Box mt={4}>
-            <CaptureSimulator pokemonBaseCaptureRate={species.capture_rate} />
+            <CaptureSimulator
+              pokemonData={pokemon}
+              pokemonBaseCaptureRate={species.capture_rate}
+            />
           </Box>
         </CardBody>
       </Card.Root>

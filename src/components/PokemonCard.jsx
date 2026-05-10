@@ -71,8 +71,11 @@ const PokemonCard = ({ pokemonId }) => {
           />
         </IconButton>
 
-        <Center bg="gray.50" borderRadius="xl" p={4} mb={4}>
+        <Center p={4} mb={4}>
           <Image
+            bg="gray.50"
+            borderRadius="100px"
+            shadow="sm"
             src={pokemonImg || pokeBall}
             alt={pokemon.name}
             boxSize="100px"
@@ -117,7 +120,7 @@ const PokemonCard = ({ pokemonId }) => {
           _hover={{ bg: "red.100", textDecoration: "none" }}
           transition="background 0.2s"
         >
-          Ver detalles
+          See details
         </Box>
       </Card.Body>
     </Card.Root>
