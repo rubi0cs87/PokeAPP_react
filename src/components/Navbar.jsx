@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import {
   useNavigate,
   Link,
@@ -15,7 +15,6 @@ import {
   Text,
   Menu,
   Portal,
-  Container,
 } from "@chakra-ui/react";
 import pokeBall from "../assets/pokeball.svg";
 
@@ -23,13 +22,13 @@ const Navbar = () => {
   const [searchParams] = useSearchParams();
   const [types, setTypes] = useState([]);
   const [generations, setGenerations] = useState([]);
-  const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const searchRef = useRef(null);
   const navigate = useNavigate();
 
   const { isShiny, toggleShiny } = useContext(PokemonContext);
   const location = useLocation();
-  const isActive = location.pathname === "/Captured";
+  const isActive = location.pathname === "/captured";
 
   useEffect(() => {
     fetch("https://pokeapi.co/api/v2/type")
@@ -51,9 +50,10 @@ const Navbar = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (search.trim()) {
-      navigate(`/pokemon/${search.toLowerCase()}`);
-      setSearch("");
+    const value = searchRef.current?.value?.trim();
+    if (value) {
+      navigate(`/pokemon/${value.toLowerCase()}`);
+      searchRef.current.value = "";
     }
   };
 
@@ -90,10 +90,10 @@ const Navbar = () => {
 
         <Box as="form" onSubmit={handleSearch} flex={1} minW={0}>
           <Input
+            ref={searchRef}
             type="text"
             placeholder="Search pokémon..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            defaultValue=""
             bg="white"
             color="gray.800"
             borderRadius="full"
@@ -221,7 +221,7 @@ const Navbar = () => {
           </Menu.Root>
         </Flex>
 
-        <Link to="/Captured" _hover={{ textDecoration: "none" }}>
+        <Link to="/captured" _hover={{ textDecoration: "none" }}>
           <Button
             size="sm"
             variant={isActive ? "solid" : "outline"}

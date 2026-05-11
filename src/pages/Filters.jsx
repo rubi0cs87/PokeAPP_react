@@ -12,6 +12,7 @@ import {
   Text,
   Center,
 } from "@chakra-ui/react";
+import missigno from "../assets/missigno.png";
 
 const Filters = () => {
   const [searchParams] = useSearchParams();

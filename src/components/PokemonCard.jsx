@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, memo } from "react";
 import { Link } from "react-router-dom";
 import { PokemonContext } from "../context/PokemonContext";
 import { usePokemon } from "../hooks/usePokemon";
@@ -127,4 +127,4 @@ const PokemonCard = ({ pokemonId }) => {
   );
 };
 
-export default PokemonCard;
+export default memo(PokemonCard);

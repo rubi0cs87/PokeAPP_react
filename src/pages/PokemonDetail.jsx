@@ -5,6 +5,7 @@ import { PokemonContext } from "../context/PokemonContext";
 import { getTypeColor } from "../utils/typeColor";
 import CaptureSimulator from "../components/CaptureSimulator";
 import Pokeball from "../assets/pokeball.svg";
+import missingNo from "../assets/missigno.png";
 import { Loading } from "../components/Loading";
 import {
   Box,
@@ -27,9 +28,11 @@ const PokemonDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: pokemon, loading: pokemonLoading } = usePokemon(
-    `https://pokeapi.co/api/v2/pokemon/${id}`,
-  );
+  const {
+    data: pokemon,
+    loading: pokemonLoading,
+    error: pokemonError,
+  } = usePokemon(`https://pokeapi.co/api/v2/pokemon/${id}`);
 
   const speciesUrl = pokemon?.species?.url;
   const { data: species, loading: speciesLoading } = usePokemon(speciesUrl);
@@ -39,6 +42,31 @@ const PokemonDetail = () => {
   const { isShiny, toggleCaptured, isCaptured } = useContext(PokemonContext);
 
   const captured = isCaptured(pokemon?.id);
+
+  if (pokemonError)
+    return (
+      <Center flexDirection="column" py={16} gap={6}>
+        <Image
+          src={missingNo}
+          alt="MissingNo"
+          boxSize="200px"
+          style={{ imageRendering: "pixelated" }}
+        />
+        <Heading size="xl" color="gray.600">
+          Wild MissingNo appeared!
+        </Heading>
+        <Text color="gray.500">
+          "{id}" doesn't exist in the Pokédex. Try another name or number.
+        </Text>
+        <Button
+          colorPalette="red"
+          borderRadius="full"
+          onClick={() => navigate(-1)}
+        >
+          Go back
+        </Button>
+      </Center>
+    );
 
   if (loading) return <Loading />;
   if (!pokemon || !species) return null;
@@ -81,12 +109,21 @@ const PokemonDetail = () => {
         position="relative"
       >
         <CardBody p={8} textAlign="center">
+          <Text
+            fontWeight="bold"
+            color="gray.400"
+            fontSize="2xl"
+            textAlign="left"
+          >
+            #{pokemon.id.toString().padStart(3, "0")}
+          </Text>
+
           <IconButton
             aria-label={captured ? "Release" : "Catch!"}
             variant="ghost"
             position="absolute"
             top="25px"
-            left="25px"
+            right="25px"
             cursor="pointer"
             onClick={handleAction}
             boxSize="48px"
@@ -100,15 +137,6 @@ const PokemonDetail = () => {
               title={captured ? "You got it!" : "Not captured yet"}
             />
           </IconButton>
-
-          <Text
-            fontWeight="bold"
-            color="gray.400"
-            fontSize="2xl"
-            textAlign="right"
-          >
-            #{pokemon.id.toString().padStart(3, "0")}
-          </Text>
 
           <Heading textTransform="capitalize" size="2xl" mb={4}>
             {pokemon.name}
@@ -130,7 +158,6 @@ const PokemonDetail = () => {
             />
           </Center>
 
-          {/* TIPOS */}
           <Flex justify="center" gap={3} mb={8}>
             {pokemon.types.map((t) => (
               <Badge
@@ -146,7 +173,6 @@ const PokemonDetail = () => {
             ))}
           </Flex>
 
-          {/* ESTADÍSTICAS */}
           <Box textAlign="left" mb={8}>
             <Heading
               size="sm"

@@ -17,7 +17,21 @@ import { PokemonContext } from "../context/PokemonContext";
 import { calculateCaptureRate } from "../utils/captureRatio";
 import pokeBall from "../assets/pokeball.svg";
 
-const toaster = createToaster({ placement: "top", pauseOnPageIdle: true });
+const toaster = createToaster({
+  placement: "top",
+  pauseOnPageIdle: true,
+  max: 3,
+});
+
+const activeToastIds = [];
+
+const showToast = (options) => {
+  if (activeToastIds.length >= 3) {
+    toaster.dismiss(activeToastIds.shift());
+  }
+  const id = toaster.create(options);
+  activeToastIds.push(id);
+};
 
 const CaptureSimulator = ({ pokemonData, pokemonBaseCaptureRate }) => {
   const { toggleCaptured, captured } = useContext(PokemonContext);
@@ -46,30 +60,30 @@ const CaptureSimulator = ({ pokemonData, pokemonBaseCaptureRate }) => {
   const handleLaunchBall = () => {
     if (isCaptured) {
       toggleCaptured(pokemonData);
-      toaster.create({
+      showToast({
         title: `${pokemonData.name.charAt(0).toUpperCase() + pokemonData.name.slice(1)} was released!`,
         description: "The Pokémon has been removed from your captured list.",
         type: "info",
-        duration: 3000,
+        duration: 1500,
       });
       return;
     }
 
     const random = Math.random() * 100;
     if (random <= captureChance) {
-      toaster.create({
+      showToast({
         title: `Gotcha! ${pokemonData.name.charAt(0).toUpperCase() + pokemonData.name.slice(1)} was caught!`,
         description: "It has been sent to your captured list.",
         type: "success",
-        duration: 3000,
+        duration: 1500,
       });
       toggleCaptured(pokemonData);
     } else {
-      toaster.create({
+      showToast({
         title: `Oh no! ${pokemonData.name.charAt(0).toUpperCase() + pokemonData.name.slice(1)} broke free!`,
         description: "The Pokémon escaped. Try again!",
         type: "error",
-        duration: 3000,
+        duration: 1500,
       });
     }
   };
@@ -128,8 +142,8 @@ const CaptureSimulator = ({ pokemonData, pokemonBaseCaptureRate }) => {
                 onChange={(e) => setStatus(Number(e.target.value))}
               >
                 <option value="1">Nothing</option>
-                <option value="2.5">Sleep/Frozen</option>
-                <option value="1.5">Paralyzed/Poisoned</option>
+                <option value="2.5">Sleep/Frozen (x2.5)</option>
+                <option value="1.5">Paralyzed/Poisoned (x1.5)</option>
               </NativeSelect.Field>
               <NativeSelect.Indicator />
             </NativeSelect.Root>

@@ -17,8 +17,8 @@ export const usePokemon = (url) => {
         }
         const result = await response.json();
         setData(result);
-      } catch (err) {
-        setError(err);
+      } catch (error) {
+        setError(error);
       } finally {
         setLoading(false);
       }

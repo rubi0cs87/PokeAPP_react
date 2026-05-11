@@ -1,16 +1,41 @@
-# React + Vite
+# PokéApp
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Una Pokédex completa construida con React y Chakra UI v3, consumiendo la [PokéAPI](https://pokeapi.co/).
 
-Currently, two official plugins are available:
+Con esta pokéApp puedes ver los stats básicos de todos los pokemon, buscar por tipos y/o por generaciones, "capturarlos" de forma automática o mediante un minijuego de captura basado en la probabilidad real del juego.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Funcionalidades
 
-## React Compiler
+- Explorar todos los Pokémon con paginación "Cargar más"
+- Buscar cualquier Pokémon por nombre o número
+- Filtrar por tipo y/o generación simultáneamente
+- Página de detalle con stats, tipos y sprite
+- Modo shiny — cambia todos los sprites a su versión shiny
+- Simulador de captura con la fórmula real de la Gen I, selección de pokeball y estado del Pokémon
+- Capturar / liberar Pokémon — persistido en `localStorage`
+- Notificaciones toast al capturar, escapar y liberar (máximo 3 a la vez)
+- Pantalla de error con MissingNo para Pokémon inválidos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Páginas
 
-## Expanding the ESLint configuration
+| Ruta           | Descripción                                 |
+| -------------- | ------------------------------------------- |
+| `/`            | Inicio — Pokémon aleatorio del día          |
+| `/filters`     | Explorador — filtra por tipo y/o generación |
+| `/pokemon/:id` | Detalle — stats y simulador de captura      |
+| `/captured`    | Tus Pokémon capturados                      |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Tecnologías
+
+- **React 18** — componentes funcionales y hooks
+- **React Router v6** — enrutado en el cliente
+- **Chakra UI v3** — componentes de UI responsivos
+- **PokéAPI** — API REST pública
+- **Vite** — herramienta de build
+
+## Cómo empezar
+
+```bash
+npm install
+npm run dev
+```
